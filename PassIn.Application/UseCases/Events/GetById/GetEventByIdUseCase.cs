@@ -11,15 +11,18 @@ namespace PassIn.Application.UseCases.Events.GetById
             var dbContext = new PassInDBContext();
             var entity = dbContext.Events.Find(id);
 
-            return entity == null
-                ? throw new PassInException("An event with the specified ID was not found.")
-                : new ResponseEventJson
-                {
-                    Id = entity.Id,
-                    Title = entity.Title,
-                    Details = entity.Details,
-                    MaximumAttendees = entity.Maximum_Attendees
-                };
+            if (entity == null)
+            {
+                throw new NotFoundException("An event with the specified ID was not found.");
+            }
+
+            return new ResponseEventJson
+            {
+                Id = entity.Id,
+                Title = entity.Title,
+                Details = entity.Details,
+                MaximumAttendees = entity.Maximum_Attendees
+            };
         }
     }
 }

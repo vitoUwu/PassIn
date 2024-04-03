@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PassIn.Application.UseCases.Events.GetById;
 using PassIn.Application.UseCases.Events.Register;
+using PassIn.Application.UseCases.Events.RegisterAttendee;
 using PassIn.Communication.Requests;
 using PassIn.Communication.Responses;
-using PassIn.Exceptions;
 
 namespace PassIn.Api.Controllers
 {
@@ -12,27 +12,15 @@ namespace PassIn.Api.Controllers
     public class EventsController : ControllerBase
     {
         [HttpPost]
-        [ProducesResponseType(typeof(ResponseRegisteredEventJson), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ResponseRegisteredJson), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status409Conflict)]
         public IActionResult Register([FromBody] RequestEventJson request)
         {
-            try
-            {
-                var useCase = new RegisterEventsUseCase();
+            var useCase = new RegisterEventsUseCase();
+            var response = useCase.Execute(request);
 
-                var response = useCase.Execute(request);
-
-                return Created("", response);
-            }
-            catch (PassInException ex)
-            {
-                return BadRequest(new ResponseErrorJson(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseErrorJson("An error occurred while processing the request"));
-            }
+            return Created("", response);
         }
 
         [HttpGet]
@@ -41,22 +29,24 @@ namespace PassIn.Api.Controllers
         [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status404NotFound)]
         public IActionResult GetById([FromRoute] Guid id)
         {
-            try
-            {
-                var useCase = new GetEventByIdUseCase();
-                var response = useCase.Execute(id);
+            var useCase = new GetEventByIdUseCase();
+            var response = useCase.Execute(id);
 
-                return Ok(response);
-            }
-            catch (PassInException ex)
-            {
-                return NotFound(new ResponseErrorJson(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseErrorJson("An error occurred while processing the request"));
-            }
+            return Ok(response);
+        }
+
+        [HttpPost]
+        [Route("{eventId}/register")]
+        [ProducesResponseType(typeof(ResponseEventJson), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status409Conflict)]
+        public IActionResult RegisterAttendee([FromBody] RequestRegisterEventJson request, [FromRoute] Guid eventId)
+        {
+            var useCase = new RegisterAttendeeOnEventUseCase();
+            var response = useCase.Execute(eventId, request);
+
+            return Created("", new ResponseRegisteredJson { Id = response.Id });
         }
     }
 }

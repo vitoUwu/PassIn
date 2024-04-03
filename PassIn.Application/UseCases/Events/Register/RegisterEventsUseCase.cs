@@ -8,7 +8,7 @@ namespace PassIn.Application.UseCases.Events.Register
 {
     public class RegisterEventsUseCase
     {
-        public ResponseRegisteredEventJson Execute(RequestEventJson request)
+        public ResponseRegisteredJson Execute(RequestEventJson request)
         {
             Validate(request);
 
@@ -18,7 +18,7 @@ namespace PassIn.Application.UseCases.Events.Register
 
             if (existingEvent != null)
             {
-                throw new PassInException("Event already exists");
+                throw new ConflictException("Event already exists");
             }
 
             var entity = new Event
@@ -32,7 +32,7 @@ namespace PassIn.Application.UseCases.Events.Register
             dbContext.Events.Add(entity);
             dbContext.SaveChanges();
 
-            return new ResponseRegisteredEventJson
+            return new ResponseRegisteredJson
             {
                 Id = entity.Id,
             };
@@ -47,17 +47,17 @@ namespace PassIn.Application.UseCases.Events.Register
         {
             if (string.IsNullOrWhiteSpace(request.Title))
             {
-                throw new PassInException("Title is required");
+                throw new ErrorOnValidationException("Title is required");
             }
 
             if (string.IsNullOrWhiteSpace(request.Details))
             {
-                throw new PassInException("Details is required");
+                throw new ErrorOnValidationException("Details is required");
             }
 
             if (request.MaximumAttendees <= 0)
             {
-                throw new PassInException("MaximumAttendees must be greater than 0");
+                throw new ErrorOnValidationException("MaximumAttendees must be greater than 0");
             }
         }
     }
