@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PassIn.Application.UseCases.Events.GetAll;
 using PassIn.Application.UseCases.Events.GetById;
 using PassIn.Application.UseCases.Events.Register;
-using PassIn.Application.UseCases.Events.RegisterAttendee;
 using PassIn.Communication.Requests;
 using PassIn.Communication.Responses;
 
@@ -35,18 +35,14 @@ namespace PassIn.Api.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
-        [Route("{eventId}/register")]
-        [ProducesResponseType(typeof(ResponseEventJson), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status409Conflict)]
-        public IActionResult RegisterAttendee([FromBody] RequestRegisterEventJson request, [FromRoute] Guid eventId)
+        [HttpGet]
+        [ProducesResponseType(typeof(ResponseAllEventsJson), StatusCodes.Status200OK)]
+        public IActionResult GetAll()
         {
-            var useCase = new RegisterAttendeeOnEventUseCase();
-            var response = useCase.Execute(eventId, request);
+            var useCase = new GetAllEventsUseCase();
+            var response = useCase.Execute();
 
-            return Created("", new ResponseRegisteredJson { Id = response.Id });
+            return Ok(response);
         }
     }
 }
